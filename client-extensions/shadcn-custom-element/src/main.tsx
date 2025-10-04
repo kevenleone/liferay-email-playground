@@ -39,7 +39,7 @@ class ShadcnCustomElement extends HTMLElement {
             this.root.render(
                 <ShadcnContextProvider shadowRoot={this.shadowRoot}>
                     <App />
-                </ShadcnContextProvider>,
+                </ShadcnContextProvider>
             );
         }
     }
