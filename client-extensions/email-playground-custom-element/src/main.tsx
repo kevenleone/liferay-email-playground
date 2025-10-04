@@ -1,7 +1,7 @@
 import { createRoot, Root } from 'react-dom/client';
 
 import styles from './index.css?inline';
-import App from './App';
+import App from './App.tsx';
 import ShadcnContextProvider from './context/ShadcnContextProvider.tsx';
 
 function apply(style: string) {
@@ -45,4 +45,4 @@ class ShadcnCustomElement extends HTMLElement {
     }
 }
 
-customElements.define('shadcn-custom-element', ShadcnCustomElement);
+customElements.define('email-playground-custom-element', ShadcnCustomElement);

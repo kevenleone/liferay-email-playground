@@ -1,0 +1,14 @@
+assemble:
+    -   from: build/vite
+        into: static
+email-playground-custom-element:
+    friendlyURLMapping: email-playground-custom-element
+    htmlElementName: email-playground-custom-element
+    instanceable: false
+    name: Email Playground Custom Element
+    panelCategoryKey: applications_menu.applications.custom.apps
+    portletCategoryName: category.client-extensions
+    type: customElement
+    urls:
+        -   "main.js"
+    useESM: true

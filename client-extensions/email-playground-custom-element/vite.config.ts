@@ -18,7 +18,7 @@ export default defineConfig({
     },
     experimental: {
         renderBuiltUrl(filename: string) {
-            return `/o/shadcn-custom-element/${filename}`;
+            return `/o/email-playground-custom-element/${filename}`;
         },
     },
     resolve: {
