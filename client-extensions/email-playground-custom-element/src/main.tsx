@@ -1,22 +1,28 @@
 import { createRoot, Root } from 'react-dom/client';
 
-import styles from './index.css?inline';
-import App from './App.tsx';
 import ShadcnContextProvider from './context/ShadcnContextProvider.tsx';
+import {
+    createHashHistory,
+    createRouter,
+    RouterProvider,
+} from '@tanstack/react-router';
+import { routeTree } from './routeTree.gen';
+import sheet from './core/tailwind-style.ts';
+import { Toaster } from './components/ui/toaster.tsx';
+import './styles/liferay.css';
 
-function apply(style: string) {
-    return style.replaceAll(':root', ':host');
-}
+const hashHistory = createHashHistory();
 
-const sheet = new CSSStyleSheet();
+const router = createRouter({
+    basepath: '/templates',
+    history: hashHistory,
+    routeTree,
+});
 
-sheet.replaceSync(apply(styles));
-
-if (import.meta.hot) {
-    import.meta.hot.accept('./index.css?inline', (newModule) => {
-        const _styles = newModule!.default;
-        sheet.replaceSync(apply(_styles));
-    });
+declare module '@tanstack/react-router' {
+    interface Register {
+        router: typeof router;
+    }
 }
 
 class ShadcnCustomElement extends HTMLElement {
@@ -38,8 +44,9 @@ class ShadcnCustomElement extends HTMLElement {
             this.root = createRoot(mountPoint);
             this.root.render(
                 <ShadcnContextProvider shadowRoot={this.shadowRoot}>
-                    <App />
-                </ShadcnContextProvider>
+                    <Toaster />
+                    <RouterProvider router={router} />
+                </ShadcnContextProvider>,
             );
         }
     }

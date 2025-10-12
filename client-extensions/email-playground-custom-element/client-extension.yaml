@@ -5,7 +5,8 @@ email-playground-custom-element:
     friendlyURLMapping: email-playground-custom-element
     htmlElementName: email-playground-custom-element
     instanceable: false
-    name: Email Playground Custom Element
+    name: Email Playground
+    panelAppOrder: 700
     panelCategoryKey: applications_menu.applications.custom.apps
     portletCategoryName: category.client-extensions
     type: customElement

@@ -22,24 +22,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
     const [isPreview, setIsPreview] = useState(false);
 
-    const insertVariable = (variable: string) => {
-        const textarea = document.getElementById(
-            'email-body'
-        ) as HTMLTextAreaElement;
-        if (textarea) {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const newValue =
-                value.substring(0, start) +
-                `%${variable}%` +
-                value.substring(end);
-            onChange(newValue);
-        }
-    };
-
     const wrapSelection = (prefix: string, suffix: string = prefix) => {
         const textarea = document.getElementById(
-            'email-body'
+            'email-body',
         ) as HTMLTextAreaElement;
         if (textarea) {
             const start = textarea.selectionStart;
@@ -57,7 +42,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     return (
         <div className="space-y-3">
-            {/* Toolbar */}
             <div className="flex items-center gap-2 p-2 border rounded-lg bg-gray-50">
                 <Button
                     variant="ghost"
@@ -67,6 +51,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <Bold className="w-4 h-4" />
                 </Button>
+
                 <Button
                     variant="ghost"
                     size="sm"
@@ -75,6 +60,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <Italic className="w-4 h-4" />
                 </Button>
+
                 <Button
                     variant="ghost"
                     size="sm"
@@ -83,6 +69,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <Underline className="w-4 h-4" />
                 </Button>
+
                 <div className="w-px h-6 bg-gray-300" />
                 <Button
                     variant="ghost"
@@ -92,6 +79,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <Type className="w-4 h-4" />
                 </Button>
+
                 <Button
                     variant="ghost"
                     size="sm"
@@ -100,6 +88,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <List className="w-4 h-4" />
                 </Button>
+
                 <Button
                     variant="ghost"
                     size="sm"
@@ -108,6 +97,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <ListOrdered className="w-4 h-4" />
                 </Button>
+
                 <Button
                     variant="ghost"
                     size="sm"
@@ -116,7 +106,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 >
                     <Code className="w-4 h-4" />
                 </Button>
+
                 <div className="w-px h-6 bg-gray-300" />
+
                 <Button
                     variant="ghost"
                     size="sm"
@@ -127,7 +119,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 </Button>
             </div>
 
-            {/* Editor/Preview */}
             {isPreview ? (
                 <div
                     className="min-h-[400px] p-4 border rounded-lg bg-white"
@@ -142,27 +133,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     placeholder="Enter your email content here. Use %VARIABLE_NAME% for dynamic content..."
                 />
             )}
-
-            {/* Quick Variables */}
-            <div className="flex flex-wrap gap-2">
-                <span className="text-sm text-gray-600">Quick insert:</span>
-                {[
-                    'CUSTOMER_NAME',
-                    'ORDER_ID',
-                    'TIMESTAMP',
-                    'ERROR_SUMMARY',
-                ].map((variable) => (
-                    <Button
-                        key={variable}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => insertVariable(variable)}
-                        className="text-xs"
-                    >
-                        %{variable}%
-                    </Button>
-                ))}
-            </div>
         </div>
     );
 };

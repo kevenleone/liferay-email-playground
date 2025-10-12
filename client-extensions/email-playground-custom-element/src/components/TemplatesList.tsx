@@ -19,34 +19,36 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Search, Plus, Edit, Trash2, Copy } from 'lucide-react';
-import type { EmailTemplate } from './EmailTemplateEditor';
+import { Search, Edit, Trash2, Copy } from 'lucide-react';
+import { NotificationTemplate } from 'liferay-headless-rest-client/notification-v1.0';
+import { useNavigate } from '@tanstack/react-router';
+import { useVariablesFlat } from '@/hooks/use-variables';
 
 interface TemplatesListProps {
-    templates: EmailTemplate[];
-    onSelectTemplate: (template: EmailTemplate) => void;
-    onCreateNew: () => void;
     onDeleteTemplate: (templateId: string) => void;
-    onDuplicateTemplate: (template: EmailTemplate) => void;
+    onDuplicateTemplate: (template: NotificationTemplate) => void;
+    templates: NotificationTemplate[];
 }
 
 export const TemplatesList: React.FC<TemplatesListProps> = ({
-    templates,
-    onSelectTemplate,
-    onCreateNew,
     onDeleteTemplate,
     onDuplicateTemplate,
+    templates,
 }) => {
-    const [searchTerm, setSearchTerm] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const [templateToDelete, setTemplateToDelete] = useState<string | null>(
-        null
+        null,
     );
+    const { replaceVariables } = useVariablesFlat();
+    const navigate = useNavigate();
 
     const filteredTemplates = templates.filter(
         (template) =>
-            template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            template.subject.toLowerCase().includes(searchTerm.toLowerCase())
+            template.name!.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            template
+                .subject!.en_US.toLowerCase()
+                .includes(searchTerm.toLowerCase()),
     );
 
     const handleDelete = (templateId: string) => {
@@ -67,11 +69,8 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle>Email Templates</CardTitle>
-                    <Button onClick={onCreateNew}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Template
-                    </Button>
                 </div>
+
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
@@ -82,11 +81,13 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                     />
                 </div>
             </CardHeader>
+
             <CardContent>
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>ID</TableHead>
                                 <TableHead>Template Name</TableHead>
                                 <TableHead>Subject</TableHead>
                                 <TableHead>Recipients</TableHead>
@@ -113,28 +114,39 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                                         key={template.id}
                                         className="cursor-pointer hover:bg-gray-50"
                                         onClick={() =>
-                                            onSelectTemplate(template)
+                                            navigate({
+                                                to: `/templates/${template.externalReferenceCode}`,
+                                            })
                                         }
                                     >
                                         <TableCell className="font-medium">
+                                            <Badge
+                                                variant="outline"
+                                                className="text-xs"
+                                            >
+                                                {template.id}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 {template.name}
-                                                <Badge
-                                                    variant="outline"
-                                                    className="text-xs"
-                                                >
-                                                    {template.id}
-                                                </Badge>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="max-w-xs truncate">
-                                            {template.subject}
-                                        </TableCell>
+                                        <TableCell
+                                            className="max-w-xs truncate"
+                                            dangerouslySetInnerHTML={{
+                                                __html: replaceVariables(
+                                                    template.subject!.en_US,
+                                                    template.externalReferenceCode ??
+                                                        '',
+                                                ),
+                                            }}
+                                        ></TableCell>
                                         <TableCell>
                                             <Badge variant="secondary">
-                                                {template.recipients.length}{' '}
+                                                {template.recipients!.length}{' '}
                                                 recipient
-                                                {template.recipients.length !==
+                                                {template.recipients!.length !==
                                                 1
                                                     ? 's'
                                                     : ''}
@@ -151,9 +163,9 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() =>
-                                                        onSelectTemplate(
-                                                            template
-                                                        )
+                                                        navigate({
+                                                            to: `/templates/${template.externalReferenceCode}`,
+                                                        })
                                                     }
                                                 >
                                                     <Edit className="w-4 h-4" />
@@ -163,7 +175,7 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                                                     size="sm"
                                                     onClick={() =>
                                                         onDuplicateTemplate(
-                                                            template
+                                                            template,
                                                         )
                                                     }
                                                 >
@@ -174,7 +186,7 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                                                     size="sm"
                                                     onClick={() =>
                                                         handleDelete(
-                                                            template.id
+                                                            String(template.id),
                                                         )
                                                     }
                                                     className="text-red-600 hover:text-red-700"

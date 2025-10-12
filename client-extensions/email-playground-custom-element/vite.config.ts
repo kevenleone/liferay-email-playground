@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import path from 'path';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 
 const devPort = 5173;
 
@@ -30,5 +31,12 @@ export default defineConfig({
         port: devPort,
         origin: `http://localhost:${devPort}`,
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [
+        tanstackRouter({
+            target: 'react',
+            autoCodeSplitting: true,
+        }),
+        react(),
+        tailwindcss(),
+    ],
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,7 @@ import {
 import { Plus, Edit3, Trash2, Copy, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { faker } from '@faker-js/faker';
-
-interface VariableSelectorProps {
-    variables: Record<string, string>;
-    onChange: (variables: Record<string, string>) => void;
-}
+import { useVariables } from '@/hooks/use-variables';
 
 const PRESET_VARIABLES = [
     { name: 'USER_NAME', value: () => faker.person.fullName() },
@@ -38,10 +34,8 @@ const PRESET_VARIABLES = [
     { name: 'DEPARTMENT', value: () => faker.commerce.department() },
 ];
 
-export const VariableSelector: React.FC<VariableSelectorProps> = ({
-    variables,
-    onChange,
-}) => {
+export const VariableSelector = () => {
+    const { variables, setVariables } = useVariables();
     const { toast } = useToast();
     const [newVarName, setNewVarName] = useState('');
     const [newVarValue, setNewVarValue] = useState('');
@@ -55,35 +49,36 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
         if (!newVarName.trim()) return;
 
         const upperName = newVarName.toUpperCase().replace(/\s+/g, '_');
-        onChange({
-            ...variables,
-            [upperName]: newVarValue,
-        });
 
         setNewVarName('');
         setNewVarValue('');
 
+        setVariables({
+            ...variables,
+            [upperName]: newVarValue,
+        });
+
         toast({
             title: 'Variable Added',
-            description: `Variable %${upperName}% has been added.`,
+            description: `Variable ${upperName} has been added.`,
         });
     };
 
     const addPresetVariable = (
         preset: (typeof PRESET_VARIABLES)[0],
-        customName?: string
+        customName?: string,
     ) => {
         const generatedValue = preset.value();
         const variableName = customName || preset.name;
 
-        onChange({
+        setVariables({
             ...variables,
             [variableName]: generatedValue,
         });
 
         toast({
             title: 'Preset Variable Added',
-            description: `Variable %${variableName}% has been added with sample data.`,
+            description: `Variable ${variableName} has been added with sample data.`,
         });
     };
 
@@ -108,7 +103,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
     };
 
     const updateVariable = (name: string, value: string) => {
-        onChange({
+        setVariables({
             ...variables,
             [name]: value,
         });
@@ -116,27 +111,26 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
     };
 
     const deleteVariable = (name: string) => {
-        const newVars = { ...variables };
+        const newVars = { ...variables } as any;
+
         delete newVars[name];
-        onChange(newVars);
+
+        setVariables(newVars);
 
         toast({
             title: 'Variable Deleted',
-            description: `Variable %${name}% has been removed.`,
+            description: `Variable ${name} has been removed.`,
         });
     };
 
     const copyVariable = (name: string) => {
-        navigator.clipboard.writeText(`%${name}%`);
+        navigator.clipboard.writeText(name);
+
         toast({
             title: 'Copied to Clipboard',
-            description: `%${name}% copied to clipboard.`,
+            description: `${name} copied to clipboard.`,
         });
     };
-
-    const availablePresets = PRESET_VARIABLES.filter(
-        (preset) => !variables[preset.name]
-    );
 
     return (
         <Card>
@@ -145,12 +139,13 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     Template Variables
                 </CardTitle>
+
                 <p className="text-sm text-gray-600">
                     Manage dynamic content replacements
                 </p>
             </CardHeader>
+
             <CardContent className="space-y-4">
-                {/* Add New Variable */}
                 <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between">
                         <Label
@@ -187,7 +182,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                                             value={customPresetName}
                                             onChange={(e) =>
                                                 setCustomPresetName(
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="text-sm"
@@ -226,7 +221,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                                                     size="sm"
                                                     onClick={() =>
                                                         handlePresetClick(
-                                                            preset
+                                                            preset,
                                                         )
                                                     }
                                                     className="justify-start text-xs h-8"
@@ -241,6 +236,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                             </PopoverContent>
                         </Popover>
                     </div>
+
                     <Input
                         id="varName"
                         placeholder="Variable name"
@@ -265,11 +261,11 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                     </Button>
                 </div>
 
-                {/* Existing Variables */}
                 <div className="space-y-3">
                     <Label className="text-sm font-medium">
                         Current Variables
                     </Label>
+
                     {Object.entries(variables).map(([name, value]) => (
                         <div
                             key={name}
@@ -278,9 +274,12 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                             <div className="flex items-center justify-between">
                                 <Badge
                                     variant="outline"
+                                    title={name}
                                     className="font-mono text-xs"
                                 >
-                                    %{name}%
+                                    {name.length > 25
+                                        ? `${name.substring(0, 25)}...`
+                                        : name}
                                 </Badge>
                                 <div className="flex items-center gap-1">
                                     <Button
@@ -314,7 +313,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                             {editingVar === name ? (
                                 <div className="space-y-2">
                                     <Input
-                                        value={value}
+                                        value={value as string}
                                         onChange={(e) =>
                                             updateVariable(name, e.target.value)
                                         }
@@ -340,7 +339,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                                 </div>
                             ) : (
                                 <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                                    {value || '<empty>'}
+                                    {(value as string) || '<empty>'}
                                 </p>
                             )}
                         </div>
@@ -353,7 +352,7 @@ export const VariableSelector: React.FC<VariableSelectorProps> = ({
                         Quick Reference
                     </h4>
                     <p className="text-xs text-blue-700">
-                        Use variables in your email by typing %VARIABLE_NAME%.
+                        Use variables in your email by typing VARIABLE_NAME.
                         They will be replaced with actual values when the email
                         is sent.
                     </p>
