@@ -54,4 +54,9 @@ class ShadcnCustomElement extends HTMLElement {
     }
 }
 
-customElements.define('email-playground-custom-element', ShadcnCustomElement);
+if (!customElements.get('email-playground-custom-element')) {
+    customElements.define(
+        'email-playground-custom-element',
+        ShadcnCustomElement,
+    );
+}
