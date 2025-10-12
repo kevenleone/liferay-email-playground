@@ -5,7 +5,7 @@ type ShadcnContextState = {
     shadowRoot: null | ShadowRoot;
 };
 
- const ShadcnContext = createContext<ShadcnContextState>({
+const ShadcnContext = createContext<ShadcnContextState>({
     shadowRoot: null,
 });
 
@@ -19,7 +19,7 @@ export default function ShadcnContextProvider(
     );
 }
 
-export {ShadcnContext}
+export { ShadcnContext };
 
 export function useShadcnContext() {
     return useContext(ShadcnContext);

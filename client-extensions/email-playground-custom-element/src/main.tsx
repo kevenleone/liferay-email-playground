@@ -9,6 +9,7 @@ import {
 import { routeTree } from './routeTree.gen';
 import sheet from './core/tailwind-style.ts';
 import { Toaster } from './components/ui/toaster.tsx';
+
 import './styles/liferay.css';
 
 const hashHistory = createHashHistory();
@@ -42,6 +43,7 @@ class ShadcnCustomElement extends HTMLElement {
             this.shadowRoot!.adoptedStyleSheets = [sheet];
 
             this.root = createRoot(mountPoint);
+
             this.root.render(
                 <ShadcnContextProvider shadowRoot={this.shadowRoot}>
                     <Toaster />
