@@ -1,4 +1,4 @@
-# Email Playground
+# Liferay Email Playground
 
 A Liferay client extension application for creating, previewing, and managing email notification templates.
 
