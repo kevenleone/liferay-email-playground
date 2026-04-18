@@ -13,8 +13,11 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Fragment } from 'react/jsx-runtime';
+import useScrollUnlocked from '@/hooks/use-scroll-unlock';
 
 const RootLayout = () => {
+    useScrollUnlocked();
+
     const { pathname } = useLocation();
 
     const paths = pathname.split('/').filter(Boolean);
