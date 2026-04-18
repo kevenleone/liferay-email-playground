@@ -1,6 +1,5 @@
 import { createRoot, Root } from 'react-dom/client';
 
-import ShadcnContextProvider from './context/ShadcnContextProvider.tsx';
 import {
     createHashHistory,
     createRouter,
@@ -16,6 +15,7 @@ const hashHistory = createHashHistory();
 
 const router = createRouter({
     basepath: '/templates',
+    context: { shadowRoot: document },
     history: hashHistory,
     routeTree,
 });
@@ -45,10 +45,10 @@ class ShadcnCustomElement extends HTMLElement {
             this.root = createRoot(mountPoint);
 
             this.root.render(
-                <ShadcnContextProvider shadowRoot={this.shadowRoot}>
-                    <Toaster />
-                    <RouterProvider router={router} />
-                </ShadcnContextProvider>,
+                    <>
+                        <Toaster />
+                        <RouterProvider context={{ shadowRoot: this.shadowRoot }} router={router} />
+                    </>
             );
         }
     }
