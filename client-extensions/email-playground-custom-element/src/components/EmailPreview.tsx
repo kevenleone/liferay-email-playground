@@ -12,6 +12,7 @@ import {
     DialogTitle,
     DialogHeader,
 } from './ui/dialog';
+import { EmailRender } from './EmailRender';
 
 interface EmailPreviewProps {
     notificationTemplate: Required<NotificationTemplate>;
@@ -90,20 +91,14 @@ export const EmailPreview: React.FC<EmailPreviewProps> = ({
 
             <div className="bg-card border rounded-lg">
                 <div className="p-6">
-                    <div
-                        className="prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: processedBody }}
-                        style={{
-                            fontFamily: 'system-ui, -apple-system, sans-serif',
-                            lineHeight: '1.6',
-                        }}
-                    />
+                    <EmailRender>{processedBody}</EmailRender>
                 </div>
 
                 <div className="border-t bg-muted p-4 text-center">
                     <p className="text-xs text-muted-foreground">
                         This is an automated notification from your system.
                     </p>
+                    
                     <p className="text-xs text-muted-foreground mt-1">
                         Please do not reply to this email.
                     </p>
