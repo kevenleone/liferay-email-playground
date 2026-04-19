@@ -60,7 +60,9 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     };
 
     const handleSend = async () => {
-        if (!notificationTemplate) return;
+        if (!notificationTemplate) {
+            return
+        };
 
         if (notificationTemplate.recipients.length === 0) {
             toast({
@@ -116,43 +118,52 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
         );
     };
 
+    const recipients = notificationTemplate.recipients
+        .map(({ to }: any) =>
+            to.en_US
+                ?.split(',')
+                ?.map((value: any) =>
+                    replaceVariables(value),
+                ),
+        )
+        .flat()
+        .filter(Boolean)
+
     return (
         <div>
-            <div>
-                <div className="flex mb-4 items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            className="text-gray-600 hover:text-gray-800"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => navigate({ to: '/' })}
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-1" />
-                            Back
-                        </Button>
-                    </div>
+            <div className="flex mb-4 items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button
+                        className="text-gray-600 hover:text-gray-800"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => navigate({ to: '/' })}
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-1" />
+                        Back
+                    </Button>
+                </div>
 
-                    <div className="flex items-center gap-3">
-                        <Badge
-                            variant="outline"
-                            className="text-blue-600 border-blue-200"
-                        >
-                            ID: {notificationTemplate!.id}
-                        </Badge>
+                <div className="flex items-center gap-3">
+                    <Badge
+                        variant="outline"
+                        className="text-blue-600 border-blue-200"
+                    >
+                        ID: {notificationTemplate!.id}
+                    </Badge>
 
-                        <Button variant="outline" onClick={handleSave}>
-                            <Save className="w-4 h-4 mr-2" />
-                            Save Template
-                        </Button>
-                        <Button
-                            onClick={handleSend}
-                            disabled={isSending}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            <Send className="w-4 h-4 mr-2" />
-                            {isSending ? 'Sending...' : 'Send Email'}
-                        </Button>
-                    </div>
+                    <Button variant="outline" onClick={handleSave}>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Template
+                    </Button>
+                    <Button
+                        onClick={handleSend}
+                        disabled={isSending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                    >
+                        <Send className="w-4 h-4 mr-2" />
+                        {isSending ? 'Sending...' : 'Send Email'}
+                    </Button>
                 </div>
             </div>
 
@@ -187,8 +198,8 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                                 <Label htmlFor="subject">Subject Line</Label>
 
                                 <Input
+                                    className="mt-1"
                                     id="subject"
-                                    value={notificationTemplate.subject.en_US}
                                     onChange={(event) =>
                                         updateTemplate({
                                             subject: {
@@ -196,21 +207,13 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                                             },
                                         })
                                     }
-                                    className="mt-1"
                                     placeholder="Enter email subject..."
+                                    value={notificationTemplate.subject.en_US}
                                 />
                             </div>
 
                             <RecipientManager
-                                recipients={notificationTemplate.recipients
-                                    .map(({ to }: any) =>
-                                        to.en_US
-                                            ?.split(',')
-                                            ?.map((value: any) =>
-                                                replaceVariables(value),
-                                            ),
-                                    )
-                                    .flat()}
+                                recipients={recipients}
                                 onChange={(recipients) =>
                                     updateTemplate({
                                         recipients:

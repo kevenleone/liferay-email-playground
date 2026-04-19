@@ -6,7 +6,5 @@ export function useShadcnContext() {
         strict: true,
     }) as { shadowRoot: ShadowRoot };
 
-    console.log(shadowRoot)
-
     return { shadowRoot };
 }
