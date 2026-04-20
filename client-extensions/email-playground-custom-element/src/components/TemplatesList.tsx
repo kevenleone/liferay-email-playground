@@ -45,7 +45,7 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
     const [templateToDelete, setTemplateToDelete] = useState<string | null>(
         null,
     );
-    const { replaceVariables } = useVariablesFlat();
+    const { hasVariables, allVariables, replaceVariables } = useVariablesFlat();
     const navigate = useNavigate();
 
     const filteredTemplates = templates.filter(
@@ -134,6 +134,40 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                                         </TableCell>
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
+                                                {hasVariables(
+                                                    template.externalReferenceCode ??
+                                                        '',
+                                                ) && (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span
+                                                                className="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0"
+                                                                aria-label="Has saved variables"
+                                                            />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            {
+                                                                Object.keys(
+                                                                    allVariables[
+                                                                        template
+                                                                            .externalReferenceCode ??
+                                                                            ''
+                                                                    ] ?? {},
+                                                                ).length
+                                                            }{' '}
+                                                            saved variable
+                                                            {Object.keys(
+                                                                allVariables[
+                                                                    template
+                                                                        .externalReferenceCode ??
+                                                                        ''
+                                                                ] ?? {},
+                                                            ).length === 1
+                                                                ? ''
+                                                                : 's'}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                )}
                                                 {template.name}
                                             </div>
                                         </TableCell>

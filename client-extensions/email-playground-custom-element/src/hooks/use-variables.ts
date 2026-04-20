@@ -37,7 +37,15 @@ export function useVariablesFlat() {
         [allVariables],
     );
 
-    return { replaceVariables };
+    const hasVariables = useCallback(
+        (externalReferenceCode: string): boolean => {
+            const stored = allVariables[externalReferenceCode];
+            return !!stored && Object.keys(stored).length > 0;
+        },
+        [allVariables],
+    );
+
+    return { allVariables, hasVariables, replaceVariables };
 }
 
 export function useVariables() {
