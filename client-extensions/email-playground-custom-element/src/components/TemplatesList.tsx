@@ -23,6 +23,11 @@ import { Search, Edit, Trash2, Copy } from 'lucide-react';
 import { NotificationTemplate } from 'liferay-headless-rest-client/notification-v1.0';
 import { useNavigate } from '@tanstack/react-router';
 import { useVariablesFlat } from '@/hooks/use-variables';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface TemplatesListProps {
     onDeleteTemplate: (templateId: string) => void;
@@ -143,14 +148,50 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
                                             }}
                                         ></TableCell>
                                         <TableCell>
-                                            <Badge variant="secondary">
-                                                {template.recipients!.length}{' '}
-                                                recipient
-                                                {template.recipients!.length !==
-                                                1
-                                                    ? 's'
-                                                    : ''}
-                                            </Badge>
+                                            {(() => {
+                                                const recipients = template
+                                                    .recipients!.flatMap(
+                                                        ({ to }: any) =>
+                                                            (to?.en_US ?? '')
+                                                                .split(',')
+                                                                .map((value: string) =>
+                                                                    value.trim(),
+                                                                ),
+                                                    )
+                                                    .filter(Boolean);
+                                                const count = recipients.length;
+
+                                                return (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Badge variant="secondary">
+                                                                {count} recipient
+                                                                {count !== 1
+                                                                    ? 's'
+                                                                    : ''}
+                                                            </Badge>
+                                                        </TooltipTrigger>
+
+                                                        {count > 0 && (
+                                                            <TooltipContent className="max-w-xs">
+                                                                <ul className="space-y-0.5 font-mono text-xs">
+                                                                    {recipients.map(
+                                                                        (email) => (
+                                                                            <li
+                                                                                key={
+                                                                                    email
+                                                                                }
+                                                                            >
+                                                                                {email}
+                                                                            </li>
+                                                                        ),
+                                                                    )}
+                                                                </ul>
+                                                            </TooltipContent>
+                                                        )}
+                                                    </Tooltip>
+                                                );
+                                            })()}
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div
