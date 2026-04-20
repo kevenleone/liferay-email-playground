@@ -11,7 +11,10 @@ function replace(text: string, variables: object, customMarkup = true) {
             ? `<mark class="variable-highlight" title="${key}">${value}</mark>`
             : value;
 
-        result = result.replaceAll(key, highlightedValue as unknown as string);
+        result = result.replaceAll(
+            `[%${key}%]`,
+            highlightedValue as unknown as string,
+        );
     });
 
     return result;

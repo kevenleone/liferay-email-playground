@@ -271,7 +271,9 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                 </div>
 
                 <div className="space-y-6">
-                    <VariableSelector />
+                    <VariableSelector
+                        templateText={`${notificationTemplate.subject.en_US ?? ''}\n${notificationTemplate.body.en_US ?? ''}`}
+                    />
                 </div>
             </div>
         </div>

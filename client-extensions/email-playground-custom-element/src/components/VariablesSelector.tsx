@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,39 +9,28 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Plus, Edit3, Trash2, Copy, Sparkles } from 'lucide-react';
+import { Plus, Edit3, Trash2, Copy, Sparkles, Wand2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { faker } from '@faker-js/faker';
 import { useVariables } from '@/hooks/use-variables';
+import {
+    PRESET_VARIABLES,
+    VariablePreset,
+    extractVariables,
+    guessPreset,
+} from '@/lib/variable-presets';
 
-const PRESET_VARIABLES = [
-    { name: 'USER_NAME', value: () => faker.person.fullName() },
-    { name: 'FIRST_NAME', value: () => faker.person.firstName() },
-    { name: 'LAST_NAME', value: () => faker.person.lastName() },
-    { name: 'EMAIL', value: () => faker.internet.email() },
-    { name: 'COMPANY_NAME', value: () => faker.company.name() },
-    { name: 'PHONE_NUMBER', value: () => faker.phone.number() },
-    { name: 'ADDRESS', value: () => faker.location.streetAddress() },
-    { name: 'CITY', value: () => faker.location.city() },
-    { name: 'DATE', value: () => faker.date.recent().toLocaleDateString() },
-    {
-        name: 'ORDER_ID',
-        value: () => `ORD-${faker.string.alphanumeric(6).toUpperCase()}`,
-    },
-    { name: 'TRANSACTION_ID', value: () => faker.string.uuid() },
-    { name: 'AMOUNT', value: () => faker.commerce.price({ symbol: '$' }) },
-    { name: 'PRODUCT_NAME', value: () => faker.commerce.productName() },
-    { name: 'DEPARTMENT', value: () => faker.commerce.department() },
-];
+type VariableSelectorProps = {
+    templateText?: string;
+};
 
-export const VariableSelector = () => {
+export const VariableSelector = ({ templateText }: VariableSelectorProps) => {
     const { variables, setVariables } = useVariables();
     const { toast } = useToast();
     const [newVarName, setNewVarName] = useState('');
     const [newVarValue, setNewVarValue] = useState('');
     const [editingVar, setEditingVar] = useState<string | null>(null);
     const [customizingPreset, setCustomizingPreset] = useState<
-        (typeof PRESET_VARIABLES)[0] | null
+        VariablePreset | null
     >(null);
     const [customPresetName, setCustomPresetName] = useState('');
 
@@ -65,7 +54,7 @@ export const VariableSelector = () => {
     };
 
     const addPresetVariable = (
-        preset: (typeof PRESET_VARIABLES)[0],
+        preset: VariablePreset,
         customName?: string,
     ) => {
         const generatedValue = preset.value();
@@ -82,9 +71,35 @@ export const VariableSelector = () => {
         });
     };
 
-    const handlePresetClick = (preset: (typeof PRESET_VARIABLES)[0]) => {
+    const handlePresetClick = (preset: VariablePreset) => {
         setCustomizingPreset(preset);
         setCustomPresetName(preset.name);
+    };
+
+    const discoveredVariables = useMemo(() => {
+        return extractVariables(templateText).filter(
+            (name) => !(name in variables),
+        );
+    }, [templateText, variables]);
+
+    const fillAllWithPresets = () => {
+        if (discoveredVariables.length === 0) return;
+
+        const additions: Record<string, string> = {};
+        let filled = 0;
+
+        for (const name of discoveredVariables) {
+            const preset = guessPreset(name) ?? PRESET_VARIABLES[0];
+            additions[name] = preset.value();
+            filled += 1;
+        }
+
+        setVariables({ ...variables, ...additions });
+
+        toast({
+            title: 'Variables Filled',
+            description: `Auto-filled ${filled} variable${filled === 1 ? '' : 's'} with sample data.`,
+        });
     };
 
     const handleCustomPresetAdd = () => {
@@ -146,6 +161,124 @@ export const VariableSelector = () => {
             </CardHeader>
 
             <CardContent className="space-y-4">
+                {discoveredVariables.length > 0 && (
+                    <div className="space-y-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium text-amber-900 flex items-center gap-1.5">
+                                <Search className="w-3.5 h-3.5" />
+                                Discovered in Template
+                                <Badge
+                                    variant="secondary"
+                                    className="text-[10px] ml-1"
+                                >
+                                    {discoveredVariables.length}
+                                </Badge>
+                            </Label>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={fillAllWithPresets}
+                                className="text-xs"
+                                title="Auto-fill all discovered variables with matching presets"
+                            >
+                                <Wand2 className="w-3 h-3 mr-1" />
+                                Fill all
+                            </Button>
+                        </div>
+
+                        <p className="text-xs text-amber-800">
+                            Found <code>[%VAR%]</code> tokens in the template
+                            that aren't defined yet. Pick a preset to add one.
+                        </p>
+
+                        <div className="space-y-1.5">
+                            {discoveredVariables.map((name) => {
+                                const suggested = guessPreset(name);
+
+                                return (
+                                    <div
+                                        key={name}
+                                        className="flex items-center justify-between gap-2 p-2 bg-white rounded border border-amber-100 min-w-0"
+                                    >
+                                        <div className="min-w-0 flex-1">
+                                            <Badge
+                                                variant="outline"
+                                                title={name}
+                                                className="font-mono text-xs w-full max-w-full truncate justify-start"
+                                            >
+                                                {name}
+                                            </Badge>
+                                        </div>
+
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-xs h-7 shrink-0 max-w-[45%]"
+                                                    title={
+                                                        suggested
+                                                            ? `Add with preset ${suggested.name}`
+                                                            : 'Add preset'
+                                                    }
+                                                >
+                                                    <Plus className="w-3 h-3 mr-1 shrink-0" />
+                                                    <span className="truncate">
+                                                        {suggested
+                                                            ? suggested.name
+                                                            : 'Add preset'}
+                                                    </span>
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent
+                                                align="end"
+                                                className="w-64"
+                                            >
+                                                <div className="space-y-2">
+                                                    <h4 className="text-sm font-medium">
+                                                        Apply preset to{' '}
+                                                        <code className="font-mono text-xs">
+                                                            {name}
+                                                        </code>
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 gap-1 max-h-60 overflow-y-auto">
+                                                        {PRESET_VARIABLES.map(
+                                                            (preset) => (
+                                                                <Button
+                                                                    key={
+                                                                        preset.name
+                                                                    }
+                                                                    variant={
+                                                                        suggested?.name ===
+                                                                        preset.name
+                                                                            ? 'secondary'
+                                                                            : 'ghost'
+                                                                    }
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        addPresetVariable(
+                                                                            preset,
+                                                                            name,
+                                                                        )
+                                                                    }
+                                                                    className="justify-start text-xs h-8"
+                                                                >
+                                                                    <Plus className="w-3 h-3 mr-2" />
+                                                                    {preset.name}
+                                                                </Button>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between">
                         <Label
