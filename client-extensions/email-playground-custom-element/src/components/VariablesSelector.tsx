@@ -122,7 +122,6 @@ export const VariableSelector = ({ templateText }: VariableSelectorProps) => {
             ...variables,
             [name]: value,
         });
-        setEditingVar(null);
     };
 
     const deleteVariable = (name: string) => {

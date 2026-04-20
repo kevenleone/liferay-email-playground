@@ -23,6 +23,12 @@ export const PRESET_VARIABLES: VariablePreset[] = [
     { name: 'AMOUNT', value: () => faker.commerce.price({ symbol: '$' }) },
     { name: 'PRODUCT_NAME', value: () => faker.commerce.productName() },
     { name: 'DEPARTMENT', value: () => faker.commerce.department() },
+    {
+        name: 'IMAGE_URL',
+        value: () =>
+            `https://picsum.photos/seed/${faker.string.alphanumeric(8)}/600/400`,
+    },
+    { name: 'AVATAR_URL', value: () => faker.image.avatar() },
 ];
 
 export const VARIABLE_PATTERN = /\[%(\w+)%\]/g;
@@ -46,6 +52,9 @@ export function guessPreset(name: string): VariablePreset | null {
     const find = (n: string) =>
         PRESET_VARIABLES.find((preset) => preset.name === n) ?? null;
 
+    if (/avatar|profile.?pic/.test(lower)) return find('AVATAR_URL');
+    if (/image|photo|picture|banner|thumbnail|logo/.test(lower))
+        return find('IMAGE_URL');
     if (/first.?name/.test(lower)) return find('FIRST_NAME');
     if (/last.?name|surname/.test(lower)) return find('LAST_NAME');
     if (/email/.test(lower)) return find('EMAIL');

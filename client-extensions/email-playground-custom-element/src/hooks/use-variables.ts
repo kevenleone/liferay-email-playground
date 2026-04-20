@@ -4,20 +4,24 @@ import { variablesStore } from '@/store/VariablesStore';
 import { useCallback, useMemo } from 'react';
 
 function replace(text: string, variables: object, customMarkup = true) {
-    let result = text || '';
+    const source = text || '';
+    const vars = variables as Record<string, string>;
 
-    Object.entries(variables).forEach(([key, value]) => {
-        const highlightedValue = customMarkup
-            ? `<mark class="variable-highlight" title="${key}">${value}</mark>`
-            : value;
+    return source.replace(/\[%(\w+)%\]/g, (match, key: string, offset: number) => {
+        if (!(key in vars)) return match;
 
-        result = result.replaceAll(
-            `[%${key}%]`,
-            highlightedValue as unknown as string,
-        );
+        const value = vars[key];
+
+        if (!customMarkup) return value;
+
+        const lastOpen = source.lastIndexOf('<', offset);
+        const lastClose = source.lastIndexOf('>', offset);
+        const insideTag = lastOpen > lastClose;
+
+        if (insideTag) return value;
+
+        return `<mark class="variable-highlight" title="${key}">${value}</mark>`;
     });
-
-    return result;
 }
 
 export function useVariablesFlat() {
