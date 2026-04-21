@@ -87,7 +87,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                     {
                         fromName: recipient.fromName!.en_US,
                         from: recipient.from,
-                        to: recipient.to!.en_US,
+                        to: replaceVariables(recipient.to!.en_US, false),
                     },
                 ],
                 subject: replaceVariables(
@@ -123,7 +123,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
             to.en_US
                 ?.split(',')
                 ?.map((value: any) =>
-                    replaceVariables(value),
+                    replaceVariables(value, false),
                 ),
         )
         .flat()

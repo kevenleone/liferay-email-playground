@@ -3,25 +3,29 @@ import { useSelector } from '@xstate/store/react';
 import { variablesStore } from '@/store/VariablesStore';
 import { useCallback, useMemo } from 'react';
 
+function escapeRegex(str: string) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function replace(text: string, variables: object, customMarkup = true) {
     const source = text || '';
     const vars = variables as Record<string, string>;
 
-    return source.replace(/\[%(\w+)%\]/g, (match, key: string, offset: number) => {
-        if (!(key in vars)) return match;
+    return Object.entries(vars).reduce((result, [key, value]) => {
+        if (!customMarkup) {
+            return result.split(key).join(value);
+        }
 
-        const value = vars[key];
+        return result.replace(new RegExp(escapeRegex(key), 'g'), (match, offset) => {
+            const lastOpen = result.lastIndexOf('<', offset);
+            const lastClose = result.lastIndexOf('>', offset);
+            const insideTag = lastOpen > lastClose;
 
-        if (!customMarkup) return value;
+            if (insideTag) return value;
 
-        const lastOpen = source.lastIndexOf('<', offset);
-        const lastClose = source.lastIndexOf('>', offset);
-        const insideTag = lastOpen > lastClose;
-
-        if (insideTag) return value;
-
-        return `<mark class="variable-highlight" title="${key}">${value}</mark>`;
-    });
+            return `<mark class="variable-highlight" title="${key}">${value}</mark>`;
+        });
+    }, source);
 }
 
 export function useVariablesFlat() {

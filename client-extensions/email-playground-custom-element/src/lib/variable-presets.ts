@@ -40,7 +40,7 @@ export function extractVariables(...sources: (string | undefined | null)[]): str
         if (!source) continue;
 
         for (const match of source.matchAll(VARIABLE_PATTERN)) {
-            found.add(match[1]);
+            found.add(match[0]);
         }
     }
 
