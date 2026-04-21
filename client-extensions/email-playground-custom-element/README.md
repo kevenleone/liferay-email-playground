@@ -1,120 +1,140 @@
 # Email Playground Custom Element
 
-A Liferay client extension for creating, previewing, and managing email notification templates.
+A Liferay client extension for composing, previewing, and testing email notification templates with dynamic variable substitution.
 
 ## Overview
 
-This custom element provides a user-friendly interface for managing email templates in Liferay DXP. It allows users to create, edit, preview, and send email templates with dynamic content using variable substitution.
+Email Playground provides a UI on top of Liferay's notification template system. It lets you author HTML email templates, fill in `[%VARIABLE%]` tokens with realistic sample data, preview the rendered result in a live iframe, and queue a test send — all without leaving the browser.
+
+The app runs as a custom web component (`<email-playground-custom-element>`) in an isolated shadow DOM and is accessible from the Liferay admin panel under **Applications > Custom Apps > Email Playground**.
 
 ## Features
 
-- **Template Management**: Create, edit, duplicate, and delete email templates
-- **Rich Text Editor**: Format email content with a WYSIWYG editor
-- **Variable Substitution**: Insert dynamic content using variables
-- **Email Preview**: See how emails will look with variables replaced
-- **Recipient Management**: Configure email recipients
+- **Template list** — searchable table of all notification templates with edit, duplicate, and delete actions; indicators show which templates have saved variables
+- **HTML editor** — rich text toolbar (bold, italic, underline, heading, lists, code) with compose/preview tabs
+- **Variable system** — `[%TOKEN%]` syntax with full-token matching so any delimiter format works; variables are stored per-template in `localStorage`
+- **Variable discovery** — scans the template body/subject for unknown tokens and surfaces them for quick setup
+- **Preset variables** — 16 built-in presets (name, email, company, order ID, amount, image URL, …) backed by Faker.js; smart-guessing maps token names to the right preset automatically
+- **Live preview** — sandboxed iframe rendering with responsive image/table styles and `[%TOKEN%]` highlights
+- **Recipient management** — email validation, badge list, quick-add shortcuts
+- **Send test email** — queues an entry via `postNotificationQueueEntry` with all variables resolved
 
-## Technologies
+## Tech stack
 
-- **React 19**: Modern UI library for building interactive interfaces
-- **TypeScript**: For type-safe JavaScript development
-- **Vite**: Fast build tool and development server
-- **Tailwind CSS**: Utility-first CSS framework for styling
-- **Shadcn UI**: Component library built on Radix UI primitives
-- **TanStack Router**: Type-safe routing for React applications
-- **Liferay Headless REST Client**: For interacting with Liferay's REST APIs
+| Concern | Library |
+|---|---|
+| UI framework | React 19 |
+| Routing | TanStack Router (file-based) |
+| State | XState Store 3 |
+| Styling | Tailwind CSS 4 + shadcn/ui (Radix UI) |
+| Icons | Lucide React |
+| Build | Vite 8 + TypeScript |
+| Sample data | Faker.js |
+| Liferay API | `@liferay/headless-rest-client` |
 
-## Project Structure
+## Project structure
 
 ```
-email-playground-custom-element/
-├── src/
-│   ├── components/               # React components
-│   │   ├── EmailPreview.tsx      # Email preview component
-│   │   ├── EmailTemplateEditor.tsx # Template editor component
-│   │   ├── RecipientManager.tsx  # Recipient management component
-│   │   ├── TemplatesList.tsx     # Templates list component
-│   │   └── VariablesSelector.tsx # Variables selection component
-│   ├── context/                  # React context providers
-│   ├── hooks/                    # Custom React hooks
-│   ├── lib/                      # Utility functions and API clients
-│   ├── routes/                   # Application routes
-│   └── styles/                   # CSS styles
-├── client-extension.yaml         # Client extension configuration
-└── package.json                  # Dependencies and scripts
+src/
+├── components/
+│   ├── EmailTemplateEditor.tsx   # main editor (subject, body, recipients, send)
+│   ├── EmailPreview.tsx          # live preview with variable replacement
+│   ├── EmailRender.tsx           # sandboxed iframe renderer
+│   ├── RichTextEditor.tsx        # HTML toolbar editor
+│   ├── RecipientManager.tsx      # recipient input & badge list
+│   ├── TemplatesList.tsx         # home screen table
+│   ├── TemplateNotFound.tsx      # 404 state
+│   ├── VariablesSelector.tsx     # variable manager sidebar
+│   └── ui/                       # shadcn primitives
+├── context/
+│   └── ShadcnContextProvider.tsx # shadow DOM root context
+├── hooks/
+│   ├── use-variables.ts          # variable read/write/replace hooks
+│   ├── use-toast.ts              # toast notification system
+│   └── use-scroll-unlock.ts      # shadow DOM scroll isolation
+├── lib/
+│   ├── liferay-headless.ts       # Liferay API client (CSRF injection)
+│   ├── liferay.ts                # Liferay global types & fallbacks
+│   ├── variable-presets.ts       # PRESET_VARIABLES, extractVariables, guessPreset
+│   └── utils.ts                  # cn() class utility
+├── routes/
+│   ├── __root.tsx                # root layout + breadcrumb
+│   ├── index.tsx                 # / — template list
+│   └── templates/
+│       └── $externalReferenceCode.tsx  # /templates/:erc — editor
+└── store/
+    └── VariablesStore.ts         # xstate store, persists to localStorage
 ```
+
+## Variable system
+
+Variables follow the `[%TOKEN%]` convention used by Liferay notification templates. The full token (including delimiters) is used as the key in storage, so the replacement is delimiter-agnostic — any wrapper format works as long as the stored key matches what appears in the template.
+
+**How replacement works:**
+
+1. `extractVariables()` scans template text and collects every `[%TOKEN%]` full match.
+2. Unknown tokens appear in the "Discovered in Template" panel so you can assign a value or preset.
+3. On preview and send, `replace()` iterates stored keys and does a literal `replaceAll` — no regex capture, so keys with any prefix/suffix are handled correctly.
+4. In the preview, replaced values are wrapped in `<mark class="variable-highlight">` for visibility. On send, plain values are used.
 
 ## Development
 
-### Prerequisites
+**Prerequisites:** Node.js 18+, Bun (or npm/yarn), Liferay DXP 7.4+
 
-- Node.js (v18+)
-- Yarn or npm
-- Liferay DXP 7.4+
-
-### Local Development
-
-1. Install dependencies:
-   ```bash
-   yarn install
-   ```
-
-2. Start the development server:
-   ```bash
-   yarn dev
-   ```
-
-3. The application will be available at `http://localhost:5173/`
-
-## Building
-
-Build the client extension:
 ```bash
-yarn build
+# Install dependencies
+bun install
+
+# Start dev server (http://localhost:5173)
+bun dev
+
+# Type-check + build
+bun run build
+
+# Lint
+bun run lint
 ```
 
-The build output will be in the `build/vite` directory.
+## Building & deployment
 
-## Deployment
+```bash
+# Build the client extension
+bun run build
+```
 
-### Using Gradle
+Output lands in `build/vite/`.
 
-From the root project directory:
+**Via Gradle (from the repo root):**
+
 ```bash
 ./gradlew buildClientExtension
 ./gradlew deployClientExtension
 ```
 
-### Manual Deployment
+This produces a `.jar` in the root `build/client-extensions/` directory that you drop into your Liferay instance.
 
-1. Build the client extension as described above
-2. Deploy the generated `.jar` file from the root project's `build/client-extensions` directory to your Liferay instance
-
-## Configuration
-
-The client extension is configured in the `client-extension.yaml` file:
+## Client extension configuration
 
 ```yaml
+# client-extension.yaml
 assemble:
-    - from: build/vite
-      into: static
+  - from: build/vite
+    into: static
+
 email-playground-custom-element:
-    friendlyURLMapping: email-playground-custom-element
-    htmlElementName: email-playground-custom-element
-    instanceable: false
-    name: Email Playground
-    panelAppOrder: 700
-    panelCategoryKey: applications_menu.applications.custom.apps
-    portletCategoryName: category.client-extensions
-    type: customElement
-    urls:
-        - "main.js"
-    useESM: true
+  friendlyURLMapping: email-playground-custom-element
+  htmlElementName: email-playground-custom-element
+  instanceable: false
+  name: Email Playground
+  panelAppOrder: 700
+  panelCategoryKey: applications_menu.applications.custom.apps
+  portletCategoryName: category.client-extensions
+  type: customElement
+  urls:
+    - main.js
+  useESM: true
 ```
 
-## Accessing the Application
+## Accessing the application
 
-After deployment, the Email Playground application can be accessed through:
-
-1. Liferay Control Panel > Applications > Custom Apps > Email Playground
-2. Or by adding it to a page as a widget
+After deployment, open **Liferay Control Panel → Applications → Custom Apps → Email Playground**, or add the widget to any page.
