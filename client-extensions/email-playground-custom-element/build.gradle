@@ -1,0 +1,5 @@
+// Check GETTING_STARTED.markdown for information regarding usage.
+
+node {
+	nodeVersion = "24.14.0"
+}

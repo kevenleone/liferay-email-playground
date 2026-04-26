@@ -1,4 +1,5 @@
 import { TemplatesList } from '@/components/TemplatesList';
+import { EmailQueue } from '@/components/EmailQueue';
 import { toast } from '@/hooks/use-toast';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 
@@ -10,6 +11,7 @@ import {
     postNotificationTemplate,
 } from 'liferay-headless-rest-client/notification-v1.0';
 import { liferayClient } from '@/lib/liferay-headless';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const Route = createFileRoute('/')({
     component: Index,
@@ -75,10 +77,23 @@ function Index() {
     };
 
     return (
-        <TemplatesList
-            templates={pageNotificationTemplate.items ?? []}
-            onDeleteTemplate={handleDeleteTemplate}
-            onDuplicateTemplate={handleDuplicateTemplate}
-        />
+        <Tabs defaultValue="templates" className="w-full">
+            <TabsList className="mb-4">
+                <TabsTrigger value="templates">Email Templates</TabsTrigger>
+                <TabsTrigger value="queue">Queue</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="templates">
+                <TemplatesList
+                    templates={pageNotificationTemplate.items ?? []}
+                    onDeleteTemplate={handleDeleteTemplate}
+                    onDuplicateTemplate={handleDuplicateTemplate}
+                />
+            </TabsContent>
+
+            <TabsContent value="queue">
+                <EmailQueue />
+            </TabsContent>
+        </Tabs>
     );
 }
